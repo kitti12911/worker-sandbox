@@ -23,7 +23,7 @@ profiling:
     tenant_id: ""
 
 nats:
-    url: nats://nats.database.svc.cluster.local:4222
+    url: nats.lan:4222
     username: example_user
     password: example_password
     queue_group_prefix: worker-sandbox
@@ -39,4 +39,4 @@ nats:
         durable_prefix: worker-sandbox
 
 worker:
-    topic: worker-sandbox.jobs
+    topic: worker-sandbox-jobs
