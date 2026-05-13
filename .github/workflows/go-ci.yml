@@ -322,17 +322,4 @@ jobs:
               env:
                   REPOSITORY: ${{ github.repository }}
                   BRANCH_SYNC_TOKEN: ${{ steps.branch-sync-token.outputs.token }}
-              run: |
-                  git config user.name "homelab-branch-sync[bot]"
-                  git config user.email "homelab-branch-sync[bot]@users.noreply.github.com"
-                  git remote set-url origin "https://x-access-token:${BRANCH_SYNC_TOKEN}@github.com/${REPOSITORY}.git"
-
-                  git fetch origin main uat develop
-
-                  git checkout -B uat origin/uat
-                  git merge --ff-only origin/main
-                  git push origin uat
-
-                  git checkout -B develop origin/develop
-                  git merge --ff-only uat
-                  git push origin develop
+              run: ./scripts/ci/fast-forward-prerelease-branches.sh
