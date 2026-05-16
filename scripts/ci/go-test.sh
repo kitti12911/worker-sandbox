@@ -10,7 +10,7 @@ if [ "${cgo}" = "true" ] && ! command -v gcc >/dev/null 2>&1; then
 	exit 2
 fi
 
-set -- go test -coverprofile="${coverage_profile}" -covermode=atomic
+set -- go test -buildvcs=false -coverprofile="${coverage_profile}" -covermode=atomic
 
 if [ "${race}" = "true" ]; then
 	set -- "$@" -race
@@ -25,4 +25,18 @@ else
 fi
 
 env CGO_ENABLED="${cgo_enabled}" "$@"
+
+# GO_COVERAGE_EXCLUDE_REGEX is an optional awk regex applied to the file:line
+# column of the coverage profile. Matching entries are dropped before % is
+# computed, so plumbing files (main, server bootstrap) can be excluded and the
+# reported coverage reflects only the logic packages worth testing. The default
+# `^$` never matches anything.
+exclude_regex="${GO_COVERAGE_EXCLUDE_REGEX:-^$}"
+
+tmp_profile="$(mktemp)"
+awk -v excl="${exclude_regex}" \
+	'NR == 1 || ($1 !~ /\/gen\// && $1 !~ /(_gen|_generated)\.go:/ && $1 !~ excl)' \
+	"${coverage_profile}" >"${tmp_profile}"
+mv "${tmp_profile}" "${coverage_profile}"
+
 go tool cover -func="${coverage_profile}" | tail -n 1
